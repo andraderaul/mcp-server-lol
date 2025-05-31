@@ -24,6 +24,7 @@ import { capitalizeState } from "../../core/utils/strings.js";
 
 // Import the domain factory from index
 import { createLiveDomain } from "./factory.js";
+import { MemoryCache } from "../../core/cache/memory-cache.js";
 
 const client = createHttpClient({
   baseURL: lolConfig.apiBaseUrl,
@@ -31,8 +32,10 @@ const client = createHttpClient({
   apiKey: lolConfig.apiKey,
 });
 
+const cache = new MemoryCache();
+
 // Create domain with use cases
-const liveDomain = createLiveDomain(client);
+const liveDomain = createLiveDomain(client, cache);
 
 // Tool 1: Get Schedule
 async function getScheduleTool(args: GetScheduleInput) {
