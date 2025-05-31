@@ -50,6 +50,14 @@ export class Match {
     return `${team1Score}-${team2Score}`;
   }
 
+  /** Keep this method for now, but we should remove it later */
+  public getMatchTitle(): string {
+    const team1 = this.teams[0]?.name || "TBD";
+    const team2 = this.teams[1]?.name || "TBD";
+
+    return `${team1} vs ${team2} - ${this.getSeriesType()}`;
+  }
+
   public hasFlag(flag: string): boolean {
     return this.flags.includes(flag);
   }

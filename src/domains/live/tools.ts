@@ -1,7 +1,6 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { httpConfig, lolConfig } from "../../core/config.js";
 import { createHttpClient } from "../../core/http-client.js";
-import type { HttpClient } from "../../core/http-client.js";
 import {
   type GetEventDetailsInput,
   GetEventDetailsInputSchema,
@@ -18,7 +17,6 @@ import {
 } from "./types.js";
 import { formatDate } from "../../core/utils/date.js";
 import { capitalizeState } from "../../core/utils/strings.js";
-import type { Team } from "./entities/team.entity.js";
 
 // Import the domain factory from index
 import { createLiveDomain } from "./factory.js";
@@ -32,13 +30,6 @@ const client = createHttpClient({
 // Create domain with use cases
 const liveDomain = createLiveDomain(client);
 
-const getTeamsNames = (teams: Team[]) => {
-  return {
-    team1: teams?.[0]?.name || "TBD",
-    team2: teams?.[1]?.name || "TBD",
-  };
-};
-
 // Tool 1: Get Schedule
 async function getScheduleTool(args: GetScheduleInput) {
   const schedule = await liveDomain.usecases.getSchedule.execute(
@@ -48,11 +39,8 @@ async function getScheduleTool(args: GetScheduleInput) {
 
   const scheduleText = schedule.events
     .map((event) => {
-      const teams = event.match?.teams;
-      const { team1, team2 } = getTeamsNames(teams);
-
       return (
-        `🎮 ${event.league.name}: ${team1} vs ${team2}\n` +
+        `🎮 ${event.league.name}: ${event.match.getMatchTitle()}\n` +
         `📅 ${formatDate(event.startTime, args.language)}\n` +
         `🏆 ${event.blockName} - ${event.state}`
       );
@@ -88,12 +76,9 @@ async function getLiveMatchesTool(args: GetLiveMatchesInput) {
 
   const liveText = liveEvents
     .map((event) => {
-      const teams = event.match.teams;
-      const { team1, team2 } = getTeamsNames(teams);
-
       return (
         `🔴 LIVE: ${event.league.name}\n` +
-        `🎮 ${team1} vs ${team2}\n` +
+        `🎮 ${event.match.getMatchTitle()}\n` +
         `🏆 ${event.blockName}`
       );
     })
@@ -315,11 +300,8 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
 
   const matchesText = upcomingMatches
     .map((event) => {
-      const teams = event.match.teams;
-      const { team1, team2 } = getTeamsNames(teams);
-
       return (
-        `⏭️ ${event.league.name}: ${team1} vs ${team2}\n` +
+        `⏭️ ${event.league.name}: ${event.match.getMatchTitle()}\n` +
         `📅 ${formatDate(event.startTime, args.language)}\n` +
         `🏆 ${event.blockName}`
       );
