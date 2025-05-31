@@ -39,12 +39,12 @@ const liveDomain = createLiveDomain(client, cache);
 
 // Tool 1: Get Schedule
 async function getScheduleTool(args: GetScheduleInput) {
-  const schedule = await liveDomain.usecases.getSchedule.execute(
+  const matchEvents = await liveDomain.usecases.getSchedule.getMatchEventsOnly(
     args.language,
     args.leagueId
   );
 
-  const scheduleText = schedule.events
+  const scheduleText = matchEvents
     .map((event) => {
       return (
         `🎮 ${event.league.name}: ${event.match.getMatchTitle()}\n` +
@@ -66,11 +66,12 @@ async function getScheduleTool(args: GetScheduleInput) {
 
 // Tool 2: Get Live Matches
 async function getLiveMatchesTool(args: GetLiveMatchesInput) {
-  const liveEvents = await liveDomain.usecases.getLiveMatches.execute(
-    args.language
-  );
+  const liveMatchEvents =
+    await liveDomain.usecases.getLiveMatches.getLiveMatchEventsOnly(
+      args.language
+    );
 
-  if (liveEvents.length === 0) {
+  if (liveMatchEvents.length === 0) {
     return {
       content: [
         {
@@ -81,7 +82,7 @@ async function getLiveMatchesTool(args: GetLiveMatchesInput) {
     };
   }
 
-  const liveText = liveEvents
+  const liveText = liveMatchEvents
     .map((event) => {
       return (
         `🔴 LIVE: ${event.league.name}\n` +
@@ -289,12 +290,13 @@ async function getMatchVODsTool(args: GetMatchVODsInput) {
 
 // Tool 6: Get Upcoming Matches
 async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
-  const upcomingMatches = await liveDomain.usecases.getUpcomingMatches.execute(
-    args.language,
-    args.limit
-  );
+  const upcomingMatchEvents =
+    await liveDomain.usecases.getUpcomingMatches.getUpcomingMatchEventsOnly(
+      args.language,
+      args.limit
+    );
 
-  if (upcomingMatches.length === 0) {
+  if (upcomingMatchEvents.length === 0) {
     return {
       content: [
         {
@@ -305,7 +307,7 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
     };
   }
 
-  const matchesText = upcomingMatches
+  const matchesText = upcomingMatchEvents
     .map((event) => {
       return (
         `⏭️ ${event.league.name}: ${event.match.getMatchTitle()}\n` +
@@ -319,7 +321,7 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
     content: [
       {
         type: "text" as const,
-        text: `⏭️ Upcoming Matches (Next ${upcomingMatches.length}):\n\n${matchesText}`,
+        text: `⏭️ Upcoming Matches (Next ${upcomingMatchEvents.length}):\n\n${matchesText}`,
       },
     ],
   };

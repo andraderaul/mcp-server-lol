@@ -4,6 +4,7 @@ import type {
   ScheduleResponse,
   LiveResponse,
   LeaguesResponse,
+  Event as EventDTO,
 } from "./dto.js";
 import { Event } from "../entities/event.entity.js";
 import { Match } from "../entities/match.entity.js";
@@ -16,9 +17,17 @@ export function mapVODFromDTO(dto: VODResponse): VODResponse {
   return dto;
 }
 
+// Type guard to check if event has match
+function isMatchEvent(event: EventDTO): event is EventDTO & {
+  type: "match";
+  match: NonNullable<EventDTO["match"]>;
+} {
+  return event.type === "match" && "match" in event;
+}
+
 // Map Team DTO to Team Entity
 export function mapTeamFromDTO(
-  teamData: ScheduleResponse["data"]["schedule"]["events"][0]["match"]["teams"][0]
+  teamData: NonNullable<EventDTO["match"]>["teams"][0]
 ): Team {
   return new Team(
     teamData.name,
@@ -31,7 +40,7 @@ export function mapTeamFromDTO(
 
 // Map Match DTO to Match Entity
 export function mapMatchFromDTO(
-  matchData: ScheduleResponse["data"]["schedule"]["events"][0]["match"]
+  matchData: NonNullable<EventDTO["match"]>
 ): Match {
   const teams = matchData.teams.map(mapTeamFromDTO);
 
@@ -39,18 +48,27 @@ export function mapMatchFromDTO(
 }
 
 // Map Event DTO to Event Entity
-export function mapEventFromDTO(
-  eventData: ScheduleResponse["data"]["schedule"]["events"][0]
-): Event {
-  const match = mapMatchFromDTO(eventData.match);
+export function mapEventFromDTO(eventData: EventDTO): Event {
+  // For match events, map the match data
+  if (isMatchEvent(eventData)) {
+    const match = mapMatchFromDTO(eventData.match);
+    return new Event(
+      eventData.startTime,
+      eventData.state,
+      eventData.type,
+      eventData.blockName,
+      eventData.league,
+      match
+    );
+  }
 
+  // For show events, no match data
   return new Event(
     eventData.startTime,
     eventData.state,
     eventData.type,
     eventData.blockName,
-    eventData.league,
-    match
+    eventData.league
   );
 }
 
@@ -59,9 +77,7 @@ export function mapEventFromLiveDTO(
   eventData: LiveResponse["data"]["schedule"]["events"][0]
 ): Event {
   // LiveResponse has the same structure as ScheduleResponse for events
-  return mapEventFromDTO(
-    eventData as ScheduleResponse["data"]["schedule"]["events"][0]
-  );
+  return mapEventFromDTO(eventData);
 }
 
 // Map League DTO to League Entity

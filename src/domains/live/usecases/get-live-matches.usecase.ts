@@ -1,5 +1,6 @@
 import type { LiveDatasource } from "../data/live-datasource.interface.js";
-import type { Event } from "../entities/event.entity.js";
+import type { Event, MatchEvent } from "../entities/event.entity.js";
+import { isMatchEvent } from "../entities/event.entity.js";
 import { mapEventFromLiveDTO } from "../data/mappers.js";
 
 export class GetLiveMatchesUseCase {
@@ -20,24 +21,37 @@ export class GetLiveMatchesUseCase {
     }
   }
 
+  async getLiveMatchEventsOnly(language = "en-US"): Promise<MatchEvent[]> {
+    try {
+      const liveEvents = await this.execute(language);
+
+      // Business logic: filter only live match events (not shows)
+      return liveEvents.filter(isMatchEvent);
+    } catch (error) {
+      console.error(
+        "Error in GetLiveMatchesUseCase.getLiveMatchEventsOnly:",
+        error
+      );
+      throw new Error("Failed to get live match events");
+    }
+  }
+
   async getLiveMatchScore(
     teamName: string,
     language: string
   ): Promise<{ eventId: string; title: string; score: string }[]> {
-    const liveMatches = await this.execute(language);
+    const liveMatchEvents = await this.getLiveMatchEventsOnly(language);
 
-    const liveMatchesForTeam = liveMatches.filter((event) => {
-      return Boolean(event.match.getTeamByName(teamName));
-    });
+    // Filter matches that have the specified team
+    const liveMatchesForTeam = liveMatchEvents.filter((event) =>
+      Boolean(event.match.getTeamByName(teamName))
+    );
 
-    const liveMatch = liveMatchesForTeam.map((event) => {
-      return {
-        eventId: event.getMatchId(),
-        title: event.match.getMatchTitle(),
-        score: event.match.getLiveScore(),
-      };
-    });
-
-    return liveMatch;
+    // No need for additional checks - TypeScript guarantees event.match exists
+    return liveMatchesForTeam.map((event) => ({
+      eventId: event.match.id,
+      title: event.match.getMatchTitle(),
+      score: event.match.getLiveScore(),
+    }));
   }
 }

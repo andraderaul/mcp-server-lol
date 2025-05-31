@@ -1,5 +1,6 @@
 import type { LiveDatasource } from "../data/live-datasource.interface.js";
-import type { Event } from "../entities/event.entity.js";
+import type { Event, MatchEvent } from "../entities/event.entity.js";
+import { isMatchEvent } from "../entities/event.entity.js";
 import { mapEventFromDTO } from "../data/mappers.js";
 
 export interface ScheduleData {
@@ -27,6 +28,21 @@ export class GetScheduleUseCase {
     } catch (error) {
       console.error("Error in GetScheduleUseCase:", error);
       throw new Error("Failed to get schedule");
+    }
+  }
+
+  async getMatchEventsOnly(
+    language = "en-US",
+    leagueId?: string
+  ): Promise<MatchEvent[]> {
+    try {
+      const schedule = await this.execute(language, leagueId);
+
+      // Business logic: filter only match events (not shows)
+      return schedule.events.filter(isMatchEvent);
+    } catch (error) {
+      console.error("Error in GetScheduleUseCase.getMatchEventsOnly:", error);
+      throw new Error("Failed to get schedule match events");
     }
   }
 }
