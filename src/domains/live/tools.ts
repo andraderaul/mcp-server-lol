@@ -1,7 +1,7 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { httpConfig, lolConfig } from "../../core/config.js";
 import { createHttpClient } from "../../core/http-client.js";
-import LiveService from "./service.js";
+import LiveService, { type Team } from "./service.js";
 import {
   type GetEventDetailsInput,
   GetEventDetailsInputSchema,
@@ -16,8 +16,9 @@ import {
   type GetUpcomingMatchesInput,
   GetUpcomingMatchesInputSchema,
 } from "./types.js";
+import { formatDate } from "../../core/utils/date.js";
+import { capitalizeState } from "../../core/utils/strings.js";
 
-// Create service instance using environment configuration
 const client = createHttpClient({
   baseURL: lolConfig.apiBaseUrl,
   timeout: httpConfig.timeout,
@@ -26,6 +27,13 @@ const client = createHttpClient({
 
 const liveService = new LiveService(client);
 
+const getTeamsNames = (teams?: Team[]) => {
+  return {
+    team1: teams?.[0]?.name || "TBD",
+    team2: teams?.[1]?.name || "TBD",
+  };
+};
+
 // Tool 1: Get Schedule
 async function getScheduleTool(args: GetScheduleInput) {
   const schedule = await liveService.getSchedule(args.language, args.leagueId);
@@ -33,12 +41,11 @@ async function getScheduleTool(args: GetScheduleInput) {
   const scheduleText = schedule.events
     .map((event) => {
       const teams = event.match?.teams;
-      const team1 = teams?.[0]?.name || "TBD";
-      const team2 = teams?.[1]?.name || "TBD";
+      const { team1, team2 } = getTeamsNames(teams);
 
       return (
         `🎮 ${event.league.name}: ${team1} vs ${team2}\n` +
-        `📅 ${new Date(event.startTime).toLocaleString()}\n` +
+        `📅 ${formatDate(event.startTime, args.language)}\n` +
         `🏆 ${event.blockName} - ${event.state}`
       );
     })
@@ -72,8 +79,7 @@ async function getLiveMatchesTool(args: GetLiveMatchesInput) {
   const liveText = liveEvents
     .map((event) => {
       const teams = event.match.teams;
-      const team1 = teams[0]?.name || "TBD";
-      const team2 = teams[1]?.name || "TBD";
+      const { team1, team2 } = getTeamsNames(teams);
 
       return (
         `🔴 LIVE: ${event.league.name}\n` +
@@ -142,7 +148,9 @@ async function getEventDetailsTool(args: GetEventDetailsInput) {
     if (games.length > 0) {
       gamesText = games
         .map((game) => {
-          return `  Game ${game.number}: ${game.state} (${game.vods.length} VODs available)`;
+          return `  Game ${game.number}: ${capitalizeState(game.state)} (${
+            game.vods.length
+          } VODs available)`;
         })
         .join("\n");
     }
@@ -174,11 +182,29 @@ async function getEventDetailsTool(args: GetEventDetailsInput) {
       ],
     };
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
+    const text = `❌ Failed to fetch event details for ID: "${args.eventId}"
+
+      🔍 Error: ${errorMessage}
+      
+      💡 Troubleshooting tips:
+         • Verify the event ID format is correct
+         • Use get-schedule tool to find valid event IDs
+         • Event might not exist or be too old
+         • Try with a recently completed match
+      
+      📋 Event ID format examples:
+         • Numeric: "110947234567890123"
+         • String: "lck-2025-spring-finals-game1"
+         • Check ${lolConfig.apiBaseUrl} for reference`;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `❌ Event ID "${args.eventId}" not found!\n\n💡 Try calling the "get-schedule" tool first to find valid event IDs from recent matches.`,
+          text,
         },
       ],
     };
@@ -222,11 +248,29 @@ async function getMatchVODsTool(args: GetMatchVODsInput) {
       ],
     };
   } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
+    const text = `❌ Failed to fetch event details for ID: "${args.eventId}"
+
+      🔍 Error: ${errorMessage}
+      
+      💡 Troubleshooting tips:
+         • Verify the event ID format is correct
+         • Use get-schedule tool to find valid event IDs
+         • Event might not exist or be too old
+         • Try with a recently completed match
+      
+      📋 Event ID format examples:
+         • Numeric: "110947234567890123"
+         • String: "lck-2025-spring-finals-game1"
+         • Check ${lolConfig.apiBaseUrl} for reference`;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `❌ Event ID "${args.eventId}" not found!\n\n💡 Try calling the "get-schedule" tool first to find valid event IDs. Only completed matches have VODs available.`,
+          text,
         },
       ],
     };
@@ -253,12 +297,11 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
   const matchesText = limitedMatches
     .map((event) => {
       const teams = event.match.teams;
-      const team1 = teams[0]?.name || "TBD";
-      const team2 = teams[1]?.name || "TBD";
+      const { team1, team2 } = getTeamsNames(teams);
 
       return (
         `⏭️ ${event.league.name}: ${team1} vs ${team2}\n` +
-        `📅 ${new Date(event.startTime).toLocaleString()}\n` +
+        `📅 ${formatDate(event.startTime, args.language)}\n` +
         `🏆 ${event.blockName}`
       );
     })
