@@ -1,7 +1,7 @@
-import { zodToJsonSchema } from 'zod-to-json-schema';
-import { httpConfig, lolConfig } from '../../core/config.js';
-import { createHttpClient } from '../../core/http-client.js';
-import LiveService from './service.js';
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { httpConfig, lolConfig } from "../../core/config.js";
+import { createHttpClient } from "../../core/http-client.js";
+import LiveService from "./service.js";
 import {
   type GetEventDetailsInput,
   GetEventDetailsInputSchema,
@@ -15,7 +15,7 @@ import {
   GetScheduleInputSchema,
   type GetUpcomingMatchesInput,
   GetUpcomingMatchesInputSchema,
-} from './types.js';
+} from "./types.js";
 
 // Create service instance using environment configuration
 const client = createHttpClient({
@@ -32,9 +32,9 @@ async function getScheduleTool(args: GetScheduleInput) {
 
   const scheduleText = schedule.events
     .map((event) => {
-      const teams = event.match.teams;
-      const team1 = teams[0]?.name || 'TBD';
-      const team2 = teams[1]?.name || 'TBD';
+      const teams = event.match?.teams;
+      const team1 = teams?.[0]?.name || "TBD";
+      const team2 = teams?.[1]?.name || "TBD";
 
       return (
         `🎮 ${event.league.name}: ${team1} vs ${team2}\n` +
@@ -42,12 +42,12 @@ async function getScheduleTool(args: GetScheduleInput) {
         `🏆 ${event.blockName} - ${event.state}`
       );
     })
-    .join('\n\n');
+    .join("\n\n");
 
   return {
     content: [
       {
-        type: 'text' as const,
+        type: "text" as const,
         text: `📋 LoL Esports Schedule (${args.language})\n\n${scheduleText}`,
       },
     ],
@@ -62,8 +62,8 @@ async function getLiveMatchesTool(args: GetLiveMatchesInput) {
     return {
       content: [
         {
-          type: 'text' as const,
-          text: '🔴 No live matches currently happening',
+          type: "text" as const,
+          text: "🔴 No live matches currently happening",
         },
       ],
     };
@@ -72,19 +72,21 @@ async function getLiveMatchesTool(args: GetLiveMatchesInput) {
   const liveText = liveEvents
     .map((event) => {
       const teams = event.match.teams;
-      const team1 = teams[0]?.name || 'TBD';
-      const team2 = teams[1]?.name || 'TBD';
+      const team1 = teams[0]?.name || "TBD";
+      const team2 = teams[1]?.name || "TBD";
 
       return (
-        `🔴 LIVE: ${event.league.name}\n` + `🎮 ${team1} vs ${team2}\n` + `🏆 ${event.blockName}`
+        `🔴 LIVE: ${event.league.name}\n` +
+        `🎮 ${team1} vs ${team2}\n` +
+        `🏆 ${event.blockName}`
       );
     })
-    .join('\n\n');
+    .join("\n\n");
 
   return {
     content: [
       {
-        type: 'text' as const,
+        type: "text" as const,
         text: `🔴 Live Matches:\n\n${liveText}`,
       },
     ],
@@ -95,7 +97,7 @@ async function getLiveMatchesTool(args: GetLiveMatchesInput) {
 async function getLeaguesTool(args: GetLeaguesInput) {
   let leagues: Awaited<ReturnType<typeof liveService.getLeagues>>;
 
-  if (args.region && args.region.trim() !== '') {
+  if (args.region && args.region.trim() !== "") {
     leagues = await liveService.getLeaguesByRegion(args.region, args.language);
   } else {
     leagues = await liveService.getLeagues(args.language);
@@ -109,14 +111,16 @@ async function getLeaguesTool(args: GetLeaguesInput) {
         `⭐ Status: ${league.displayPriority.status}`
       );
     })
-    .join('\n\n');
+    .join("\n\n");
 
-  const title = args.region ? `🌍 Leagues in ${args.region}` : '🏆 All Available Leagues';
+  const title = args.region
+    ? `🌍 Leagues in ${args.region}`
+    : "🏆 All Available Leagues";
 
   return {
     content: [
       {
-        type: 'text' as const,
+        type: "text" as const,
         text: `${title}\n\n${leaguesText}`,
       },
     ],
@@ -126,23 +130,31 @@ async function getLeaguesTool(args: GetLeaguesInput) {
 // Tool 4: Get Event Details
 async function getEventDetailsTool(args: GetEventDetailsInput) {
   try {
-    const eventDetails = await liveService.getEventDetails(args.eventId, args.language);
+    const eventDetails = await liveService.getEventDetails(
+      args.eventId,
+      args.language
+    );
 
     const teams = eventDetails.match.teams;
     const games = eventDetails.match.games;
 
-    let gamesText = '';
+    let gamesText = "";
     if (games.length > 0) {
       gamesText = games
         .map((game) => {
           return `  Game ${game.number}: ${game.state} (${game.vods.length} VODs available)`;
         })
-        .join('\n');
+        .join("\n");
     }
 
-    const teamsText = teams.map((t) => `${t.name} (${t.code})`).join(' vs ');
-    const resultsText = teams.map((t) => `${t.name}: ${t.result.gameWins} wins`).join(' | ');
-    const totalVODs = games.reduce((total, game) => total + game.vods.length, 0);
+    const teamsText = teams.map((t) => `${t.name} (${t.code})`).join(" vs ");
+    const resultsText = teams
+      .map((t) => `${t.name}: ${t.result.gameWins} wins`)
+      .join(" | ");
+    const totalVODs = games.reduce(
+      (total, game) => total + game.vods.length,
+      0
+    );
 
     const detailsText =
       `🎮 ${eventDetails.league.name} Event Details\n\n` +
@@ -156,7 +168,7 @@ async function getEventDetailsTool(args: GetEventDetailsInput) {
     return {
       content: [
         {
-          type: 'text' as const,
+          type: "text" as const,
           text: detailsText,
         },
       ],
@@ -165,7 +177,7 @@ async function getEventDetailsTool(args: GetEventDetailsInput) {
     return {
       content: [
         {
-          type: 'text' as const,
+          type: "text" as const,
           text: `❌ Event ID "${args.eventId}" not found!\n\n💡 Try calling the "get-schedule" tool first to find valid event IDs from recent matches.`,
         },
       ],
@@ -182,7 +194,7 @@ async function getMatchVODsTool(args: GetMatchVODsInput) {
       return {
         content: [
           {
-            type: 'text' as const,
+            type: "text" as const,
             text: `📺 No VODs available for event ${args.eventId}`,
           },
         ],
@@ -199,12 +211,12 @@ async function getMatchVODsTool(args: GetMatchVODsInput) {
           `🔗 Parameter: ${vod.parameter}`
         );
       })
-      .join('\n\n');
+      .join("\n\n");
 
     return {
       content: [
         {
-          type: 'text' as const,
+          type: "text" as const,
           text: `📺 VODs for Event ${args.eventId}:\n\n${vodsText}`,
         },
       ],
@@ -213,7 +225,7 @@ async function getMatchVODsTool(args: GetMatchVODsInput) {
     return {
       content: [
         {
-          type: 'text' as const,
+          type: "text" as const,
           text: `❌ Event ID "${args.eventId}" not found!\n\n💡 Try calling the "get-schedule" tool first to find valid event IDs. Only completed matches have VODs available.`,
         },
       ],
@@ -231,8 +243,8 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
     return {
       content: [
         {
-          type: 'text' as const,
-          text: '⏭️ No upcoming matches found',
+          type: "text" as const,
+          text: "⏭️ No upcoming matches found",
         },
       ],
     };
@@ -241,8 +253,8 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
   const matchesText = limitedMatches
     .map((event) => {
       const teams = event.match.teams;
-      const team1 = teams[0]?.name || 'TBD';
-      const team2 = teams[1]?.name || 'TBD';
+      const team1 = teams[0]?.name || "TBD";
+      const team2 = teams[1]?.name || "TBD";
 
       return (
         `⏭️ ${event.league.name}: ${team1} vs ${team2}\n` +
@@ -250,12 +262,12 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
         `🏆 ${event.blockName}`
       );
     })
-    .join('\n\n');
+    .join("\n\n");
 
   return {
     content: [
       {
-        type: 'text' as const,
+        type: "text" as const,
         text: `⏭️ Upcoming Matches (Next ${limitedMatches.length}):\n\n${matchesText}`,
       },
     ],
@@ -265,38 +277,41 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
 // Export tool definitions for MCP server registration
 export const tools = [
   {
-    name: 'get-schedule',
-    description: 'Get League of Legends esports schedule for a specific language',
+    name: "get-schedule",
+    description:
+      "Get League of Legends esports schedule for a specific language",
     inputSchema: zodToJsonSchema(GetScheduleInputSchema),
     handler: getScheduleTool,
   },
   {
-    name: 'get-live-matches',
-    description: 'Get currently live League of Legends esports matches',
+    name: "get-live-matches",
+    description: "Get currently live League of Legends esports matches",
     inputSchema: zodToJsonSchema(GetLiveMatchesInputSchema),
     handler: getLiveMatchesTool,
   },
   {
-    name: 'get-leagues',
-    description: 'Get all available League of Legends esports leagues',
+    name: "get-leagues",
+    description: "Get all available League of Legends esports leagues",
     inputSchema: zodToJsonSchema(GetLeaguesInputSchema),
     handler: getLeaguesTool,
   },
   {
-    name: 'get-event-details',
-    description: 'Get detailed information about a specific League of Legends esports event',
+    name: "get-event-details",
+    description:
+      "Get detailed information about a specific League of Legends esports event",
     inputSchema: zodToJsonSchema(GetEventDetailsInputSchema),
     handler: getEventDetailsTool,
   },
   {
-    name: 'get-match-vods',
-    description: 'Get VODs (Video on Demand) for a specific League of Legends esports match',
+    name: "get-match-vods",
+    description:
+      "Get VODs (Video on Demand) for a specific League of Legends esports match",
     inputSchema: zodToJsonSchema(GetMatchVODsInputSchema),
     handler: getMatchVODsTool,
   },
   {
-    name: 'get-upcoming-matches',
-    description: 'Get upcoming League of Legends esports matches',
+    name: "get-upcoming-matches",
+    description: "Get upcoming League of Legends esports matches",
     inputSchema: zodToJsonSchema(GetUpcomingMatchesInputSchema),
     handler: getUpcomingMatchesTool,
   },

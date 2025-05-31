@@ -8,9 +8,6 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 // Import domain tools
 import { tools as liveTools } from "./domains/live/index.js";
-import { config } from "./core/config.js";
-
-console.log(config);
 
 // Create and configure server
 const server = new Server(
