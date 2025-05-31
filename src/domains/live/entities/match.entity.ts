@@ -50,6 +50,13 @@ export class Match {
     return `${team1Score}-${team2Score}`;
   }
 
+  public getLiveScore(): string {
+    const team1Score = this.teams[0]?.result.gameWins || 0;
+    const team2Score = this.teams[1]?.result.gameWins || 0;
+
+    return `${team1Score}-${team2Score}`;
+  }
+
   /** Keep this method for now, but we should remove it later */
   public getMatchTitle(): string {
     const team1 = this.teams[0]?.name || "TBD";

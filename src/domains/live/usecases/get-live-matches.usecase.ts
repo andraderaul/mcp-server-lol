@@ -19,4 +19,25 @@ export class GetLiveMatchesUseCase {
       throw new Error("Failed to get live matches");
     }
   }
+
+  async getLiveMatchScore(
+    teamName: string,
+    language: string
+  ): Promise<{ eventId: string; title: string; score: string }[]> {
+    const liveMatches = await this.execute(language);
+
+    const liveMatchesForTeam = liveMatches.filter((event) => {
+      return Boolean(event.match.getTeamByName(teamName));
+    });
+
+    const liveMatch = liveMatchesForTeam.map((event) => {
+      return {
+        eventId: event.getMatchId(),
+        title: event.match.getMatchTitle(),
+        score: event.match.getLiveScore(),
+      };
+    });
+
+    return liveMatch;
+  }
 }

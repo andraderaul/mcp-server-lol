@@ -1,18 +1,22 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { httpConfig, lolConfig } from "../../core/config.js";
 import { createHttpClient } from "../../core/http-client.js";
+import type {
+  GetEventDetailsInput,
+  GetLeaguesInput,
+  GetLiveMatchesInput,
+  GetLiveMatchScoreInput,
+  GetMatchVODsInput,
+  GetScheduleInput,
+  GetUpcomingMatchesInput,
+} from "./types.js";
 import {
-  type GetEventDetailsInput,
   GetEventDetailsInputSchema,
-  type GetLeaguesInput,
   GetLeaguesInputSchema,
-  type GetLiveMatchesInput,
   GetLiveMatchesInputSchema,
-  type GetMatchVODsInput,
+  GetLiveMatchScoreInputSchema,
   GetMatchVODsInputSchema,
-  type GetScheduleInput,
   GetScheduleInputSchema,
-  type GetUpcomingMatchesInput,
   GetUpcomingMatchesInputSchema,
 } from "./types.js";
 import { formatDate } from "../../core/utils/date.js";
@@ -318,6 +322,45 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
   };
 }
 
+//Tool 7: Get Live Match Score
+async function getLiveMatchScoreTool(args: GetLiveMatchScoreInput) {
+  const liveMatchScore =
+    await liveDomain.usecases.getLiveMatches.getLiveMatchScore(
+      args.teamName,
+      args.language
+    );
+
+  if (liveMatchScore.length === 0) {
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: "🔴 No live match score found",
+        },
+      ],
+    };
+  }
+
+  const liveMatchScoreText = liveMatchScore
+    .map((match) => {
+      return (
+        `🔴 Live Match Title: ${match.title}\n` +
+        `📊 Score: ${match.score}\n` +
+        `🔗 Event ID: ${match.eventId}\n\n`
+      );
+    })
+    .join("\n\n");
+
+  return {
+    content: [
+      {
+        type: "text" as const,
+        text: liveMatchScoreText,
+      },
+    ],
+  };
+}
+
 // Export tool definitions for MCP server registration
 export const tools = [
   {
@@ -358,5 +401,11 @@ export const tools = [
     description: "Get upcoming League of Legends esports matches",
     inputSchema: zodToJsonSchema(GetUpcomingMatchesInputSchema),
     handler: getUpcomingMatchesTool,
+  },
+  {
+    name: "get-live-match-score",
+    description: "Get the score of a live League of Legends esports match",
+    inputSchema: zodToJsonSchema(GetLiveMatchScoreInputSchema),
+    handler: getLiveMatchScoreTool,
   },
 ] as const;

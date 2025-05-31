@@ -82,6 +82,16 @@ export const GetUpcomingMatchesInputSchema = z.object({
     .describe("Maximum number of upcoming matches to return"),
 });
 
+export const GetLiveMatchScoreInputSchema = z.object({
+  language: LanguageSchema.default("en-US").describe(
+    "Language code for the live match score response"
+  ),
+  teamName: z
+    .string()
+    .min(1, "Team name cannot be empty")
+    .describe("Name of the team to get score for"),
+});
+
 // Inferred TypeScript types
 export type Language = z.infer<typeof LanguageSchema>;
 export type GetScheduleInput = z.infer<typeof GetScheduleInputSchema>;
@@ -91,4 +101,7 @@ export type GetEventDetailsInput = z.infer<typeof GetEventDetailsInputSchema>;
 export type GetMatchVODsInput = z.infer<typeof GetMatchVODsInputSchema>;
 export type GetUpcomingMatchesInput = z.infer<
   typeof GetUpcomingMatchesInputSchema
+>;
+export type GetLiveMatchScoreInput = z.infer<
+  typeof GetLiveMatchScoreInputSchema
 >;
