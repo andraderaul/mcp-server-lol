@@ -1,7 +1,7 @@
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { httpConfig, lolConfig } from "../../core/config.js";
 import { createHttpClient } from "../../core/http-client.js";
-import LiveService, { type Team } from "./service.js";
+import type { HttpClient } from "../../core/http-client.js";
 import {
   type GetEventDetailsInput,
   GetEventDetailsInputSchema,
@@ -18,6 +18,10 @@ import {
 } from "./types.js";
 import { formatDate } from "../../core/utils/date.js";
 import { capitalizeState } from "../../core/utils/strings.js";
+import type { Team } from "./entities/team.entity.js";
+
+// Import the domain factory from index
+import { createLiveDomain } from "./factory.js";
 
 const client = createHttpClient({
   baseURL: lolConfig.apiBaseUrl,
@@ -25,9 +29,10 @@ const client = createHttpClient({
   apiKey: lolConfig.apiKey,
 });
 
-const liveService = new LiveService(client);
+// Create domain with use cases
+const liveDomain = createLiveDomain(client);
 
-const getTeamsNames = (teams?: Team[]) => {
+const getTeamsNames = (teams: Team[]) => {
   return {
     team1: teams?.[0]?.name || "TBD",
     team2: teams?.[1]?.name || "TBD",
@@ -36,7 +41,10 @@ const getTeamsNames = (teams?: Team[]) => {
 
 // Tool 1: Get Schedule
 async function getScheduleTool(args: GetScheduleInput) {
-  const schedule = await liveService.getSchedule(args.language, args.leagueId);
+  const schedule = await liveDomain.usecases.getSchedule.execute(
+    args.language,
+    args.leagueId
+  );
 
   const scheduleText = schedule.events
     .map((event) => {
@@ -63,7 +71,9 @@ async function getScheduleTool(args: GetScheduleInput) {
 
 // Tool 2: Get Live Matches
 async function getLiveMatchesTool(args: GetLiveMatchesInput) {
-  const liveEvents = await liveService.getLive(args.language);
+  const liveEvents = await liveDomain.usecases.getLiveMatches.execute(
+    args.language
+  );
 
   if (liveEvents.length === 0) {
     return {
@@ -101,12 +111,17 @@ async function getLiveMatchesTool(args: GetLiveMatchesInput) {
 
 // Tool 3: Get Leagues
 async function getLeaguesTool(args: GetLeaguesInput) {
-  let leagues: Awaited<ReturnType<typeof liveService.getLeagues>>;
+  let leagues: Awaited<
+    ReturnType<typeof liveDomain.usecases.getLeagues.execute>
+  >;
 
   if (args.region && args.region.trim() !== "") {
-    leagues = await liveService.getLeaguesByRegion(args.region, args.language);
+    leagues = await liveDomain.usecases.getLeagues.getByRegion(
+      args.region,
+      args.language
+    );
   } else {
-    leagues = await liveService.getLeagues(args.language);
+    leagues = await liveDomain.usecases.getLeagues.execute(args.language);
   }
 
   const leaguesText = leagues
@@ -136,7 +151,7 @@ async function getLeaguesTool(args: GetLeaguesInput) {
 // Tool 4: Get Event Details
 async function getEventDetailsTool(args: GetEventDetailsInput) {
   try {
-    const eventDetails = await liveService.getEventDetails(
+    const eventDetails = await liveDomain.usecases.getEventDetails.execute(
       args.eventId,
       args.language
     );
@@ -214,7 +229,10 @@ async function getEventDetailsTool(args: GetEventDetailsInput) {
 // Tool 5: Get Match VODs
 async function getMatchVODsTool(args: GetMatchVODsInput) {
   try {
-    const vods = await liveService.getMatchVODs(args.eventId, args.language);
+    const vods = await liveDomain.usecases.getEventDetails.getMatchVODs(
+      args.eventId,
+      args.language
+    );
 
     if (vods.length === 0) {
       return {
@@ -279,11 +297,12 @@ async function getMatchVODsTool(args: GetMatchVODsInput) {
 
 // Tool 6: Get Upcoming Matches
 async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
-  const upcomingMatches = await liveService.getUpcomingMatches(args.language);
+  const upcomingMatches = await liveDomain.usecases.getUpcomingMatches.execute(
+    args.language,
+    args.limit
+  );
 
-  const limitedMatches = upcomingMatches.slice(0, args.limit);
-
-  if (limitedMatches.length === 0) {
+  if (upcomingMatches.length === 0) {
     return {
       content: [
         {
@@ -294,7 +313,7 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
     };
   }
 
-  const matchesText = limitedMatches
+  const matchesText = upcomingMatches
     .map((event) => {
       const teams = event.match.teams;
       const { team1, team2 } = getTeamsNames(teams);
@@ -311,7 +330,7 @@ async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
     content: [
       {
         type: "text" as const,
-        text: `⏭️ Upcoming Matches (Next ${limitedMatches.length}):\n\n${matchesText}`,
+        text: `⏭️ Upcoming Matches (Next ${upcomingMatches.length}):\n\n${matchesText}`,
       },
     ],
   };

@@ -1,4 +1,4 @@
-import type { HttpClient } from '../../core/http-client.js';
+import type { HttpClient } from "../../core/http-client.js";
 
 // Types for LoL Esports API
 interface League {
@@ -6,12 +6,12 @@ interface League {
   slug: string;
 }
 
-interface Team {
+export interface Team {
   name: string;
   code: string;
   image: string;
   result: {
-    outcome: 'win' | 'loss' | null;
+    outcome: "win" | "loss" | null;
     gameWins: number;
   };
   record: {
@@ -32,7 +32,7 @@ interface Match {
 
 interface Event {
   startTime: string;
-  state: 'completed' | 'unstarted' | 'inProgress';
+  state: "completed" | "unstarted" | "inProgress";
   type: string;
   blockName: string;
   league: League;
@@ -65,7 +65,7 @@ interface LeagueDetails {
   priority: number;
   displayPriority: {
     position: number;
-    status: 'force_selected' | 'selected' | 'not_selected' | 'hidden';
+    status: "force_selected" | "selected" | "not_selected" | "hidden";
   };
 }
 
@@ -97,7 +97,7 @@ interface EventTeam {
 
 interface GameTeam {
   id: string;
-  side: 'blue' | 'red';
+  side: "blue" | "red";
 }
 
 interface VOD {
@@ -119,7 +119,7 @@ interface VOD {
 interface Game {
   number: number;
   id: string;
-  state: 'completed' | 'unstarted' | 'inProgress';
+  state: "completed" | "unstarted" | "inProgress";
   teams: GameTeam[];
   vods: VOD[];
 }
@@ -160,39 +160,44 @@ export default class LiveService {
   /**
    * Get the schedule of League of Legends esports matches
    */
-  async getSchedule(language = 'en-US', leagueId?: string): Promise<Schedule> {
+  async getSchedule(language = "en-US", leagueId?: string): Promise<Schedule> {
     try {
       const response = await this.httpClient.get<ScheduleResponse>(
-        `/persisted/gw/getSchedule?hl=${language}${leagueId ? `&leagueId=${leagueId}` : ''}`
+        `/persisted/gw/getSchedule?hl=${language}${
+          leagueId ? `&leagueId=${leagueId}` : ""
+        }`
       );
 
       return response.data.schedule;
     } catch (error) {
-      console.error('Error fetching schedule:', error);
-      throw new Error('Failed to fetch LoL esports schedule');
+      console.error("Error fetching schedule:", error);
+      throw new Error("Failed to fetch LoL esports schedule");
     }
   }
 
   /**
    * Get upcoming matches (not completed)
    */
-  async getUpcomingMatches(language = 'en-US'): Promise<Event[]> {
+  async getUpcomingMatches(language = "en-US"): Promise<Event[]> {
     const schedule = await this.getSchedule(language);
-    return schedule.events.filter((event) => event.state !== 'completed');
+    return schedule.events.filter((event) => event.state !== "completed");
   }
 
   /**
    * Get completed matches
    */
-  async getCompletedMatches(language = 'en-US'): Promise<Event[]> {
+  async getCompletedMatches(language = "en-US"): Promise<Event[]> {
     const schedule = await this.getSchedule(language);
-    return schedule.events.filter((event) => event.state === 'completed');
+    return schedule.events.filter((event) => event.state === "completed");
   }
 
   /**
    * Get matches for a specific league
    */
-  async getMatchesForLeague(leagueSlug: string, language = 'en-US'): Promise<Event[]> {
+  async getMatchesForLeague(
+    leagueSlug: string,
+    language = "en-US"
+  ): Promise<Event[]> {
     const schedule = await this.getSchedule(language);
     return schedule.events.filter((event) => event.league.slug === leagueSlug);
   }
@@ -200,15 +205,15 @@ export default class LiveService {
   /**
    * Get live matches (in progress)
    */
-  async getLiveMatches(language = 'en-US'): Promise<Event[]> {
+  async getLiveMatches(language = "en-US"): Promise<Event[]> {
     const schedule = await this.getSchedule(language);
-    return schedule.events.filter((event) => event.state === 'inProgress');
+    return schedule.events.filter((event) => event.state === "inProgress");
   }
 
   /**
    * Get all available leagues from current schedule
    */
-  async getAvailableLeagues(language = 'en-US'): Promise<League[]> {
+  async getAvailableLeagues(language = "en-US"): Promise<League[]> {
     const schedule = await this.getSchedule(language);
     const uniqueLeagues = new Map<string, League>();
 
@@ -224,29 +229,32 @@ export default class LiveService {
   /**
    * Get live events (currently happening)
    */
-  async getLive(language = 'en-US'): Promise<Event[]> {
+  async getLive(language = "en-US"): Promise<Event[]> {
     try {
       const response = await this.httpClient.get<LiveResponse>(
         `/persisted/gw/getLive?hl=${language}`
       );
       return response.data.schedule.events;
     } catch (error) {
-      console.error('Error fetching live events:', error);
-      throw new Error('Failed to fetch live LoL esports events');
+      console.error("Error fetching live events:", error);
+      throw new Error("Failed to fetch live LoL esports events");
     }
   }
 
   /**
    * Get detailed information about a specific event
    */
-  async getEventDetails(eventId: string, language = 'en-US'): Promise<EventDetailsData> {
+  async getEventDetails(
+    eventId: string,
+    language = "en-US"
+  ): Promise<EventDetailsData> {
     try {
       const response = await this.httpClient.get<EventDetailsResponse>(
         `/persisted/gw/getEventDetails?hl=${language}&id=${eventId}`
       );
       return response.data.event;
     } catch (error) {
-      console.error('Error fetching event details:', error);
+      console.error("Error fetching event details:", error);
       throw new Error(`Failed to fetch details for event ${eventId}`);
     }
   }
@@ -254,22 +262,25 @@ export default class LiveService {
   /**
    * Get all available leagues with detailed information
    */
-  async getLeagues(language = 'en-US'): Promise<LeagueDetails[]> {
+  async getLeagues(language = "en-US"): Promise<LeagueDetails[]> {
     try {
       const response = await this.httpClient.get<LeaguesResponse>(
         `/persisted/gw/getLeagues?hl=${language}`
       );
       return response.data.leagues;
     } catch (error) {
-      console.error('Error fetching leagues:', error);
-      throw new Error('Failed to fetch LoL esports leagues');
+      console.error("Error fetching leagues:", error);
+      throw new Error("Failed to fetch LoL esports leagues");
     }
   }
 
   /**
    * Get leagues by region
    */
-  async getLeaguesByRegion(region: string, language = 'en-US'): Promise<LeagueDetails[]> {
+  async getLeaguesByRegion(
+    region: string,
+    language = "en-US"
+  ): Promise<LeagueDetails[]> {
     const leagues = await this.getLeagues(language);
     return leagues.filter((league) => league.region === region);
   }
@@ -278,8 +289,8 @@ export default class LiveService {
    * Get leagues by status (selected, hidden, etc.)
    */
   async getLeaguesByStatus(
-    status: 'force_selected' | 'selected' | 'not_selected' | 'hidden',
-    language = 'en-US'
+    status: "force_selected" | "selected" | "not_selected" | "hidden",
+    language = "en-US"
   ): Promise<LeagueDetails[]> {
     const leagues = await this.getLeagues(language);
     return leagues.filter((league) => league.displayPriority.status === status);
@@ -288,7 +299,7 @@ export default class LiveService {
   /**
    * Get available regions
    */
-  async getAvailableRegions(language = 'en-US'): Promise<string[]> {
+  async getAvailableRegions(language = "en-US"): Promise<string[]> {
     const leagues = await this.getLeagues(language);
     const uniqueRegions = new Set<string>();
 
@@ -302,7 +313,7 @@ export default class LiveService {
   /**
    * Check if there are any live matches currently
    */
-  async hasLiveMatches(language = 'en-US'): Promise<boolean> {
+  async hasLiveMatches(language = "en-US"): Promise<boolean> {
     const liveEvents = await this.getLive(language);
     return liveEvents.length > 0;
   }
@@ -310,7 +321,7 @@ export default class LiveService {
   /**
    * Get event details with VODs for a specific match
    */
-  async getMatchVODs(eventId: string, language = 'en-US'): Promise<VOD[]> {
+  async getMatchVODs(eventId: string, language = "en-US"): Promise<VOD[]> {
     const eventDetails = await this.getEventDetails(eventId, language);
     const allVODs: VOD[] = [];
 

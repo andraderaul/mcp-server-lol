@@ -1,4 +1,2 @@
-// Domain Live - Index
-
 // Tools and Handlers
-export { tools } from './tools.js';
+export { tools } from "./tools.js";
