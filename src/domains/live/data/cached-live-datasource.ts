@@ -28,12 +28,10 @@ export class CachedLiveDatasourceImpl implements LiveDatasource {
     // Try cache first
     const cached = await this.cache.get<ScheduleResponse>(cacheKey);
     if (cached) {
-      console.log(`Cache HIT: ${cacheKey}`);
       return cached;
     }
 
     // Cache miss - fetch from API
-    console.log(`Cache MISS: ${cacheKey}`);
     const result = await this.datasource.getSchedule(language, leagueId);
 
     // Cache with dynamic TTL
@@ -47,11 +45,9 @@ export class CachedLiveDatasourceImpl implements LiveDatasource {
 
     const cached = await this.cache.get<LiveResponse>(cacheKey);
     if (cached) {
-      console.log(`Cache HIT: ${cacheKey}`);
       return cached;
     }
 
-    console.log(`Cache MISS: ${cacheKey}`);
     const result = await this.datasource.getLive(language);
 
     // Short TTL for live data
@@ -68,11 +64,9 @@ export class CachedLiveDatasourceImpl implements LiveDatasource {
 
     const cached = await this.cache.get<EventDetailsResponse>(cacheKey);
     if (cached) {
-      console.log(`Cache HIT: ${cacheKey}`);
       return cached;
     }
 
-    console.log(`Cache MISS: ${cacheKey}`);
     const result = await this.datasource.getEventDetails(eventId, language);
 
     // Long TTL for historical data
@@ -86,11 +80,9 @@ export class CachedLiveDatasourceImpl implements LiveDatasource {
 
     const cached = await this.cache.get<LeaguesResponse>(cacheKey);
     if (cached) {
-      console.log(`Cache HIT: ${cacheKey}`);
       return cached;
     }
 
-    console.log(`Cache MISS: ${cacheKey}`);
     const result = await this.datasource.getLeagues(language);
 
     // Very long TTL for static data
