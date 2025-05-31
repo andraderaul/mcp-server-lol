@@ -1,31 +1,31 @@
 # MCP Server League of Legends
 
-Servidor MCP (Model Context Protocol) para acessar dados dos esports de League of Legends em tempo real. Fornece informações sobre partidas ao vivo, cronogramas, ligas, detalhes de eventos e VODs através de uma interface padronizada.
+MCP (Model Context Protocol) server to access League of Legends esports data in real-time. Provides information about live matches, schedules, leagues, event details, and VODs through a standardized interface.
 
-## 🎯 Funcionalidades
+## 🎯 Features
 
-- **🔴 Partidas ao vivo**: Monitore jogos happening agora
-- **📅 Cronograma**: Visualize próximas partidas e eventos
-- **🏆 Ligas**: Explore todas as ligas disponíveis por região
-- **📊 Detalhes de eventos**: Informações completas sobre partidas específicas
-- **📺 VODs**: Acesse gravações de partidas finalizadas
-- **⏭️ Próximas partidas**: Lista de jogos futuros
+- **🔴 Live matches**: Monitor games happening right now
+- **📅 Schedule**: View upcoming matches and events
+- **🏆 Leagues**: Explore all available leagues by region
+- **📊 Event details**: Complete information about specific matches
+- **📺 VODs**: Access recordings of finished matches
+- **⏭️ Upcoming matches**: List of future games
 
-## 🚀 Início Rápido
+## 🚀 Quick Start
 
-### 1. Instalação
+### 1. Installation
 
 ```bash
-# Clone e instale dependências
+# Clone and install dependencies
 npm install
 
-# Configure as variáveis de ambiente
+# Configure environment variables
 cp .env.example .env
 ```
 
-### 2. Configuração
+### 2. Configuration
 
-Edite o arquivo `.env` com suas configurações:
+Edit the `.env` file with your settings:
 
 ```bash
 # League of Legends eSports API Configuration
@@ -36,22 +36,22 @@ LOL_API_KEY=your_api_key_here
 HTTP_TIMEOUT=10000
 ```
 
-### 3. Build e Execução
+### 3. Build and Run
 
 ```bash
-# Compilar
+# Build
 npm run build
 
-# Executar
+# Run
 npm start
 
-# Ou desenvolvimento com watch
+# Or development with watch mode
 npm run dev
 ```
 
-## ⚙️ Configuração no Cursor
+## ⚙️ Cursor Configuration
 
-Para usar este servidor MCP no Cursor, configure o arquivo `.cursor/mcp.json`:
+To use this MCP server in Cursor, configure the `.cursor/mcp.json` file:
 
 ```json
 {
@@ -70,68 +70,68 @@ Para usar este servidor MCP no Cursor, configure o arquivo `.cursor/mcp.json`:
 }
 ```
 
-> **Nota**: Substitua `/path/to/your/mcp-server-lol` pelo caminho real do projeto no seu sistema.
+> **Note**: Replace `/path/to/your/mcp-server-lol` with the actual project path on your system.
 
-## 🛠️ Ferramentas Disponíveis
+## 🛠️ Available Tools
 
-| Ferramenta             | Descrição                     | Parâmetros                        |
-| ---------------------- | ----------------------------- | --------------------------------- |
-| `get-schedule`         | Cronograma de esports do LoL  | `language`, `leagueId` (opcional) |
-| `get-live-matches`     | Partidas ao vivo              | `language`                        |
-| `get-leagues`          | Ligas disponíveis             | `language`, `region` (opcional)   |
-| `get-event-details`    | Detalhes de evento específico | `eventId`, `language`             |
-| `get-match-vods`       | VODs de partida               | `eventId`, `language`             |
-| `get-upcoming-matches` | Próximas partidas             | `language`, `limit`               |
+| Tool                   | Description            | Parameters                        |
+| ---------------------- | ---------------------- | --------------------------------- |
+| `get-schedule`         | LoL esports schedule   | `language`, `leagueId` (optional) |
+| `get-live-matches`     | Live matches           | `language`                        |
+| `get-leagues`          | Available leagues      | `language`, `region` (optional)   |
+| `get-event-details`    | Specific event details | `eventId`, `language`             |
+| `get-match-vods`       | Match VODs             | `eventId`, `language`             |
+| `get-upcoming-matches` | Upcoming matches       | `language`, `limit`               |
 
-### Idiomas Suportados
+### Supported Languages
 
 `en-US`, `es-ES`, `fr-FR`, `de-DE`, `it-IT`, `pt-BR`, `ru-RU`, `tr-TR`, `ja-JP`, `ko-KR`, `zh-CN`, `zh-TW`
 
-## 📁 Estrutura do Projeto
+## 📁 Project Structure
 
 ```
 src/
-├── index.ts              # Servidor MCP principal
-├── core/                 # Configurações base
-│   ├── config.ts         # Gerenciamento de env vars
-│   └── http-client.ts    # Cliente HTTP customizado
-├── domains/              # Funcionalidades específicas
-│   └── live/             # API de League of Legends
-│       ├── tools.ts      # Ferramentas MCP
-│       ├── service.ts    # Lógica de negócio
-│       ├── types.ts      # Tipos TypeScript
+├── index.ts              # Main MCP server
+├── core/                 # Base configurations
+│   ├── config.ts         # Environment variables management
+│   └── http-client.ts    # Custom HTTP client
+├── domains/              # Specific functionalities
+│   └── live/             # League of Legends API
+│       ├── tools.ts      # MCP tools
+│       ├── service.ts    # Business logic
+│       ├── types.ts      # TypeScript types
 │       └── index.ts      # Exports
-└── examples/             # Exemplos de uso
+└── examples/             # Usage examples
 ```
 
-## 🔧 Scripts NPM
+## 🔧 NPM Scripts
 
-| Script           | Descrição                          |
-| ---------------- | ---------------------------------- |
-| `npm run build`  | Compila TypeScript para JavaScript |
-| `npm run dev`    | Desenvolvimento com watch mode     |
-| `npm start`      | Executa o servidor compilado       |
-| `npm run lint`   | Executa linting do código          |
-| `npm run format` | Formata código com Biome           |
-| `npm run check`  | Lint + format completo             |
+| Script           | Description                      |
+| ---------------- | -------------------------------- |
+| `npm run build`  | Compile TypeScript to JavaScript |
+| `npm run dev`    | Development with watch mode      |
+| `npm start`      | Run the compiled server          |
+| `npm run lint`   | Run code linting                 |
+| `npm run format` | Format code with Biome           |
+| `npm run check`  | Complete lint + format           |
 
-## 🌐 Stack Tecnológica
+## 🌐 Tech Stack
 
-- **Runtime**: Node.js com ESM
-- **Linguagem**: TypeScript
-- **Protocolo**: MCP (Model Context Protocol)
-- **Validação**: Zod com schema JSON
+- **Runtime**: Node.js with ESM
+- **Language**: TypeScript
+- **Protocol**: MCP (Model Context Protocol)
+- **Validation**: Zod with JSON schema
 - **Code Quality**: Biome (linting + formatting)
-- **HTTP Client**: Fetch customizado
-- **Gerenciamento de Env**: dotenv
+- **HTTP Client**: Custom fetch
+- **Environment Management**: dotenv
 
-## 🔒 Segurança
+## 🔒 Security
 
-- Todas as configurações sensíveis são carregadas via variáveis de ambiente
-- Arquivo `.env` incluído no `.gitignore`
-- Validação obrigatória de variáveis críticas
-- Timeouts configuráveis para requisições HTTP
+- All sensitive configurations are loaded via environment variables
+- `.env` file included in `.gitignore`
+- Mandatory validation of critical variables
+- Configurable timeouts for HTTP requests
 
-## 📄 Licença
+## 📄 License
 
 ISC
