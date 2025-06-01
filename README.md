@@ -11,6 +11,37 @@ MCP (Model Context Protocol) server to access League of Legends esports data in 
 - **📺 VODs**: Access recordings of finished matches
 - **⏭️ Upcoming matches**: List of future games
 
+## 🎯 Prompt Templates
+
+This MCP server includes intelligent prompt templates that help AI assistants provide better responses about League of Legends esports:
+
+### Available Prompts
+
+- **`lol-esports-system`** - Main system prompt with tool usage guidelines
+- **`lol-live-matches`** - Specialized for live match queries
+- **`lol-schedule`** - For schedule and tournament planning
+- **`lol-leagues`** - League exploration and discovery
+- **`lol-match-analysis`** - Detailed match analysis and VODs
+- **`lol-troubleshooting`** - Error handling and alternatives
+- **`lol-user-engagement`** - Enhanced user experience patterns
+
+### How AI Assistants Use Prompts
+
+AI assistants can access these prompts through the MCP protocol to:
+
+- Understand context-specific response patterns
+- Learn effective tool combinations
+- Provide more engaging and accurate answers
+- Handle edge cases and errors gracefully
+
+### Example Usage in AI Assistants
+
+```javascript
+// AI assistant can request specific prompt context
+const livePrompt = await mcp.getPrompt("lol-live-matches");
+// Then combine with live match data for better responses
+```
+
 ## 🚀 Quick Start
 
 ### 1. Installation

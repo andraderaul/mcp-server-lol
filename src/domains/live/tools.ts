@@ -21,6 +21,12 @@ import {
 } from "./types.js";
 import { formatDate } from "../../core/utils/date.js";
 import { capitalizeState } from "../../core/utils/strings.js";
+import { toolDescriptions } from "./tool-descriptions.js";
+import {
+  handleToolError,
+  formatErrorResponse,
+  ErrorFactory,
+} from "../../core/errors/mcp-errors.js";
 
 // Import the domain factory from index
 import { createLiveDomain } from "./factory.js";
@@ -39,106 +45,128 @@ const liveDomain = createLiveDomain(client, cache);
 
 // Tool 1: Get Schedule
 async function getScheduleTool(args: GetScheduleInput) {
-  const matchEvents = await liveDomain.usecases.getSchedule.getMatchEventsOnly(
-    args.language,
-    args.leagueId
-  );
-
-  const scheduleText = matchEvents
-    .map((event) => {
-      return (
-        `🎮 ${event.league.name}: ${event.match.getMatchTitle()}\n` +
-        `📅 ${formatDate(event.startTime, args.language)}\n` +
-        `🏆 ${event.blockName} - ${event.state}`
+  try {
+    const matchEvents =
+      await liveDomain.usecases.getSchedule.getMatchEventsOnly(
+        args.language,
+        args.leagueId
       );
-    })
-    .join("\n\n");
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: `📋 LoL Esports Schedule (${args.language})\n\n${scheduleText}`,
-      },
-    ],
-  };
-}
+    const scheduleText = matchEvents
+      .map((event) => {
+        return (
+          `🎮 ${event.league.name}: ${event.match.getMatchTitle()}\n` +
+          `📅 ${formatDate(event.startTime, args.language)}\n` +
+          `🏆 ${event.blockName} - ${event.state}`
+        );
+      })
+      .join("\n\n");
 
-// Tool 2: Get Live Matches
-async function getLiveMatchesTool(args: GetLiveMatchesInput) {
-  const liveMatchEvents =
-    await liveDomain.usecases.getLiveMatches.getLiveMatchEventsOnly(
-      args.language
-    );
-
-  if (liveMatchEvents.length === 0) {
     return {
       content: [
         {
           type: "text" as const,
-          text: "🔴 No live matches currently happening",
+          text: `📋 LoL Esports Schedule (${args.language})\n\n${scheduleText}`,
         },
       ],
     };
+  } catch (error) {
+    const mcpError = handleToolError(error, "get-schedule", {
+      language: args.language,
+    });
+    return formatErrorResponse(mcpError);
   }
+}
 
-  const liveText = liveMatchEvents
-    .map((event) => {
-      return (
-        `🔴 LIVE: ${event.league.name}\n` +
-        `🎮 ${event.match.getMatchTitle()}\n` +
-        `🏆 ${event.blockName}`
+// Tool 2: Get Live Matches
+async function getLiveMatchesTool(args: GetLiveMatchesInput) {
+  try {
+    const liveMatchEvents =
+      await liveDomain.usecases.getLiveMatches.getLiveMatchEventsOnly(
+        args.language
       );
-    })
-    .join("\n\n");
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: `🔴 Live Matches:\n\n${liveText}`,
-      },
-    ],
-  };
+    if (liveMatchEvents.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "🔴 No live matches currently happening",
+          },
+        ],
+      };
+    }
+
+    const liveText = liveMatchEvents
+      .map((event) => {
+        return (
+          `🔴 LIVE: ${event.league.name}\n` +
+          `🎮 ${event.match.getMatchTitle()}\n` +
+          `🏆 ${event.blockName}`
+        );
+      })
+      .join("\n\n");
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `🔴 Live Matches:\n\n${liveText}`,
+        },
+      ],
+    };
+  } catch (error) {
+    const mcpError = handleToolError(error, "get-live-matches", {
+      language: args.language,
+    });
+    return formatErrorResponse(mcpError);
+  }
 }
 
 // Tool 3: Get Leagues
 async function getLeaguesTool(args: GetLeaguesInput) {
-  let leagues: Awaited<
-    ReturnType<typeof liveDomain.usecases.getLeagues.execute>
-  >;
+  try {
+    let leagues: Awaited<
+      ReturnType<typeof liveDomain.usecases.getLeagues.execute>
+    >;
 
-  if (args.region && args.region.trim() !== "") {
-    leagues = await liveDomain.usecases.getLeagues.getByRegion(
-      args.region,
-      args.language
-    );
-  } else {
-    leagues = await liveDomain.usecases.getLeagues.execute(args.language);
-  }
-
-  const leaguesText = leagues
-    .map((league) => {
-      return (
-        `🏆 ${league.name} (${league.slug})\n` +
-        `🌍 Region: ${league.region}\n` +
-        `⭐ Status: ${league.displayPriority.status}`
+    if (args.region && args.region.trim() !== "") {
+      leagues = await liveDomain.usecases.getLeagues.getByRegion(
+        args.region,
+        args.language
       );
-    })
-    .join("\n\n");
+    } else {
+      leagues = await liveDomain.usecases.getLeagues.execute(args.language);
+    }
 
-  const title = args.region
-    ? `🌍 Leagues in ${args.region}`
-    : "🏆 All Available Leagues";
+    const leaguesText = leagues
+      .map((league) => {
+        return (
+          `🏆 ${league.name} (${league.slug})\n` +
+          `🌍 Region: ${league.region}\n` +
+          `⭐ Status: ${league.displayPriority.status}`
+        );
+      })
+      .join("\n\n");
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: `${title}\n\n${leaguesText}`,
-      },
-    ],
-  };
+    const title = args.region
+      ? `🌍 Leagues in ${args.region}`
+      : "🏆 All Available Leagues";
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `${title}\n\n${leaguesText}`,
+        },
+      ],
+    };
+  } catch (error) {
+    const mcpError = handleToolError(error, "get-leagues", {
+      language: args.language,
+    });
+    return formatErrorResponse(mcpError);
+  }
 }
 
 // Tool 4: Get Event Details
@@ -190,32 +218,20 @@ async function getEventDetailsTool(args: GetEventDetailsInput) {
       ],
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    // Special handling for event not found errors
+    if (error instanceof Error && error.message.includes("not found")) {
+      const eventNotFoundError = ErrorFactory.eventNotFound(
+        args.eventId,
+        "get-event-details"
+      );
+      return formatErrorResponse(eventNotFoundError);
+    }
 
-    const text = `❌ Failed to fetch event details for ID: "${args.eventId}"
-
-      🔍 Error: ${errorMessage}
-      
-      💡 Troubleshooting tips:
-         • Verify the event ID format is correct
-         • Use get-schedule tool to find valid event IDs
-         • Event might not exist or be too old
-         • Try with a recently completed match
-      
-      📋 Event ID format examples:
-         • Numeric: "110947234567890123"
-         • String: "lck-2025-spring-finals-game1"
-         • Check ${lolConfig.apiBaseUrl} for reference`;
-
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text,
-        },
-      ],
-    };
+    const mcpError = handleToolError(error, "get-event-details", {
+      eventId: args.eventId,
+      language: args.language,
+    });
+    return formatErrorResponse(mcpError);
   }
 }
 
@@ -259,157 +275,157 @@ async function getMatchVODsTool(args: GetMatchVODsInput) {
       ],
     };
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    // Special handling for event not found errors
+    if (error instanceof Error && error.message.includes("not found")) {
+      const eventNotFoundError = ErrorFactory.eventNotFound(
+        args.eventId,
+        "get-match-vods"
+      );
+      return formatErrorResponse(eventNotFoundError);
+    }
 
-    const text = `❌ Failed to fetch event details for ID: "${args.eventId}"
-
-      🔍 Error: ${errorMessage}
-      
-      💡 Troubleshooting tips:
-         • Verify the event ID format is correct
-         • Use get-schedule tool to find valid event IDs
-         • Event might not exist or be too old
-         • Try with a recently completed match
-      
-      📋 Event ID format examples:
-         • Numeric: "110947234567890123"
-         • String: "lck-2025-spring-finals-game1"
-         • Check ${lolConfig.apiBaseUrl} for reference`;
-
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text,
-        },
-      ],
-    };
+    const mcpError = handleToolError(error, "get-match-vods", {
+      eventId: args.eventId,
+      language: args.language,
+    });
+    return formatErrorResponse(mcpError);
   }
 }
 
 // Tool 6: Get Upcoming Matches
 async function getUpcomingMatchesTool(args: GetUpcomingMatchesInput) {
-  const upcomingMatchEvents =
-    await liveDomain.usecases.getUpcomingMatches.getUpcomingMatchEventsOnly(
-      args.language,
-      args.limit
-    );
+  try {
+    const upcomingMatchEvents =
+      await liveDomain.usecases.getUpcomingMatches.getUpcomingMatchEventsOnly(
+        args.language,
+        args.limit
+      );
 
-  if (upcomingMatchEvents.length === 0) {
+    if (upcomingMatchEvents.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "⏭️ No upcoming matches found",
+          },
+        ],
+      };
+    }
+
+    const matchesText = upcomingMatchEvents
+      .map((event) => {
+        return (
+          `⏭️ ${event.league.name}: ${event.match.getMatchTitle()}\n` +
+          `📅 ${formatDate(event.startTime, args.language)}\n` +
+          `🏆 ${event.blockName}`
+        );
+      })
+      .join("\n\n");
+
     return {
       content: [
         {
           type: "text" as const,
-          text: "⏭️ No upcoming matches found",
+          text: `⏭️ Upcoming Matches (Next ${upcomingMatchEvents.length}):\n\n${matchesText}`,
         },
       ],
     };
+  } catch (error) {
+    const mcpError = handleToolError(error, "get-upcoming-matches", {
+      language: args.language,
+    });
+    return formatErrorResponse(mcpError);
   }
-
-  const matchesText = upcomingMatchEvents
-    .map((event) => {
-      return (
-        `⏭️ ${event.league.name}: ${event.match.getMatchTitle()}\n` +
-        `📅 ${formatDate(event.startTime, args.language)}\n` +
-        `🏆 ${event.blockName}`
-      );
-    })
-    .join("\n\n");
-
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: `⏭️ Upcoming Matches (Next ${upcomingMatchEvents.length}):\n\n${matchesText}`,
-      },
-    ],
-  };
 }
 
 //Tool 7: Get Live Match Score
 async function getLiveMatchScoreTool(args: GetLiveMatchScoreInput) {
-  const liveMatchScore =
-    await liveDomain.usecases.getLiveMatches.getLiveMatchScore(
-      args.teamName,
-      args.language
-    );
+  try {
+    const liveMatchScore =
+      await liveDomain.usecases.getLiveMatches.getLiveMatchScore(
+        args.teamName,
+        args.language
+      );
 
-  if (liveMatchScore.length === 0) {
+    if (liveMatchScore.length === 0) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "🔴 No live match score found",
+          },
+        ],
+      };
+    }
+
+    const liveMatchScoreText = liveMatchScore
+      .map((match) => {
+        return (
+          `🔴 Live Match Title: ${match.title}\n` +
+          `📊 Score: ${match.score}\n` +
+          `🔗 Event ID: ${match.eventId}\n\n`
+        );
+      })
+      .join("\n\n");
+
     return {
       content: [
         {
           type: "text" as const,
-          text: "🔴 No live match score found",
+          text: liveMatchScoreText,
         },
       ],
     };
+  } catch (error) {
+    const mcpError = handleToolError(error, "get-live-match-score", {
+      teamName: args.teamName,
+      language: args.language,
+    });
+    return formatErrorResponse(mcpError);
   }
-
-  const liveMatchScoreText = liveMatchScore
-    .map((match) => {
-      return (
-        `🔴 Live Match Title: ${match.title}\n` +
-        `📊 Score: ${match.score}\n` +
-        `🔗 Event ID: ${match.eventId}\n\n`
-      );
-    })
-    .join("\n\n");
-
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: liveMatchScoreText,
-      },
-    ],
-  };
 }
 
 // Export tool definitions for MCP server registration
 export const tools = [
   {
-    name: "get-schedule",
-    description:
-      "Get League of Legends esports schedule for a specific language",
+    name: toolDescriptions.getSchedule.name,
+    description: toolDescriptions.getSchedule.description,
     inputSchema: zodToJsonSchema(GetScheduleInputSchema),
     handler: getScheduleTool,
   },
   {
-    name: "get-live-matches",
-    description: "Get currently live League of Legends esports matches",
+    name: toolDescriptions.getLiveMatches.name,
+    description: toolDescriptions.getLiveMatches.description,
     inputSchema: zodToJsonSchema(GetLiveMatchesInputSchema),
     handler: getLiveMatchesTool,
   },
   {
-    name: "get-leagues",
-    description: "Get all available League of Legends esports leagues",
+    name: toolDescriptions.getLeagues.name,
+    description: toolDescriptions.getLeagues.description,
     inputSchema: zodToJsonSchema(GetLeaguesInputSchema),
     handler: getLeaguesTool,
   },
   {
-    name: "get-event-details",
-    description:
-      "Get detailed information about a specific League of Legends esports event",
+    name: toolDescriptions.getEventDetails.name,
+    description: toolDescriptions.getEventDetails.description,
     inputSchema: zodToJsonSchema(GetEventDetailsInputSchema),
     handler: getEventDetailsTool,
   },
   {
-    name: "get-match-vods",
-    description:
-      "Get VODs (Video on Demand) for a specific League of Legends esports match",
+    name: toolDescriptions.getMatchVods.name,
+    description: toolDescriptions.getMatchVods.description,
     inputSchema: zodToJsonSchema(GetMatchVODsInputSchema),
     handler: getMatchVODsTool,
   },
   {
-    name: "get-upcoming-matches",
-    description: "Get upcoming League of Legends esports matches",
+    name: toolDescriptions.getUpcomingMatches.name,
+    description: toolDescriptions.getUpcomingMatches.description,
     inputSchema: zodToJsonSchema(GetUpcomingMatchesInputSchema),
     handler: getUpcomingMatchesTool,
   },
   {
-    name: "get-live-match-score",
-    description: "Get the score of a live League of Legends esports match",
+    name: toolDescriptions.getLiveMatchScore.name,
+    description: toolDescriptions.getLiveMatchScore.description,
     inputSchema: zodToJsonSchema(GetLiveMatchScoreInputSchema),
     handler: getLiveMatchScoreTool,
   },
