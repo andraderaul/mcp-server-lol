@@ -1,54 +1,67 @@
 # MCP League of Legends Esports Server Documentation
 
-Welcome to the documentation for the MCP League of Legends Esports Server. This documentation covers the architecture, components, and best practices for building and maintaining MCP servers.
+This directory contains comprehensive documentation for the MCP Server League of Legends project.
 
-## 📚 Documentation Structure
+## 📖 Available Documentation
 
-### Architecture
+### [Features & Functionality](features.md)
 
-- [**MCP Components Guide**](./architecture/mcp-components.md) - Deep dive into Prompts, Resources, and Tools
-- [**Domain-Driven Design**](./architecture/ddd-patterns.md) - How we apply DDD principles
-- [**Caching Strategy**](./architecture/caching.md) - Cache patterns and best practices
+Detailed descriptions of all features, intelligent prompt templates, and integration patterns for AI assistants.
 
-### Examples
+**Topics covered:**
 
-- [**Usage Scenarios**](./examples/usage-scenarios.md) - Real-world examples and patterns
-- [**API Integration**](./examples/api-integration.md) - How to integrate with external APIs
+- Core features overview
+- Intelligent prompt templates
+- Multi-language support
+- Tool integration patterns
 
-### Best Practices
+### [API Reference](api-reference.md)
 
-- [**Error Handling**](./best-practices/error-handling.md) - Robust error management
-- [**Type Safety**](./best-practices/type-safety.md) - TypeScript patterns and Zod schemas
-- [**Performance**](./best-practices/performance.md) - Optimization techniques
+Complete technical documentation of all available tools, their parameters, and usage examples.
 
-## 🚀 Quick Start
+**Topics covered:**
 
-1. **Understanding Components**: Start with [MCP Components Guide](./architecture/mcp-components.md)
-2. **See It In Action**: Check [Usage Scenarios](./examples/usage-scenarios.md)
-3. **Best Practices**: Review our [Best Practices](./best-practices/) section
+- All 7 MCP tools with detailed descriptions
+- Parameter specifications and defaults
+- Response formats and data structures
+- Common workflows and tool combinations
 
-## 🎯 Key Concepts
+### [Project Structure & Tech Stack](project-structure.md)
 
-This MCP server demonstrates enterprise-grade patterns:
+In-depth look at the project architecture, technology choices, and development workflow.
 
-- **Modular Architecture**: Clear separation between Prompts, Resources, and Tools
-- **Domain-Driven Design**: Business logic encapsulated in domain objects
-- **Type Safety**: End-to-end type safety with Zod schemas
-- **Caching Strategy**: Intelligent caching for performance and reliability
-- **Error Handling**: Robust error management with specific error types
+**Topics covered:**
 
-## 📖 Core Components
+- Domain-Driven Design architecture
+- Complete tech stack breakdown
+- Development workflow and build system
+- Security considerations and deployment
 
-### 🤖 Prompts
+## 🗂️ Additional Resources
 
-AI assistant guidance and context templates
+### [Examples](examples/)
 
-### 📊 Resources
+Practical examples and integration guides for common use cases.
 
-URI-based cached data access
+### [Architecture](architecture/)
 
-### 🛠️ Tools
+Deep dive into architectural decisions and design patterns used in the project.
 
-Function-based parameterized interactions
+## 🚀 Quick Navigation
 
-See the [MCP Components Guide](./architecture/mcp-components.md) for detailed explanations and comparisons.
+- **Getting Started**: See the main [README.md](../README.md)
+- **Need specific tool info**: Check [API Reference](api-reference.md)
+- **Understanding the codebase**: Read [Project Structure](project-structure.md)
+- **Want to see features**: Browse [Features & Functionality](features.md)
+
+## 📝 Contributing to Documentation
+
+If you find any gaps in the documentation or have suggestions for improvement, please feel free to contribute by:
+
+1. Opening an issue describing what's missing
+2. Submitting a pull request with improvements
+3. Asking questions that help us identify unclear areas
+
+---
+
+**Note**: This documentation follows the project's pragma-first approach - keeping essential information accessible while providing deep-dive details for those who need them.
